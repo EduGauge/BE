@@ -29,6 +29,10 @@ public class Category {
         this.user = user;
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
 
 
 }

@@ -11,4 +11,5 @@ public interface ProofImageRepository extends JpaRepository<ProofImage, Long> {
             Long userId,
             LocalDate proofDate
     );
+    void deleteByUser_Id(Long userId);
 }

@@ -9,11 +9,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.edugauge.service.CustomOAuth2UserService;
+import com.edugauge.jwt.OAuth2SuccessHandler;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,9 +35,16 @@ public class SecurityConfig {
                                 "/api/users/signup",
                                 "/api/auth/login",
                                 "/api/auth/reissue",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
                                 "/uploads/**"
                         ).permitAll()
                         .anyRequest().authenticated()
+                ).oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
                 );
 
 

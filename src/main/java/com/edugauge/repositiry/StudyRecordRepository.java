@@ -10,5 +10,7 @@ public interface StudyRecordRepository extends JpaRepository<StudyRecord, Long> 
     Optional<StudyRecord> findByUser_IdAndStudyDate(
             Long userId,
             LocalDate studyDate
+
     );
+    void deleteByUser_Id(Long userId);
 }

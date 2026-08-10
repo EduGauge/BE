@@ -1,9 +1,6 @@
 package com.edugauge.controller;
 
-import com.edugauge.dto.MyPageResponse;
-import com.edugauge.dto.MyPageUpdateRequest;
-import com.edugauge.dto.UserSearchResponse;
-import com.edugauge.dto.UserSignupRequest;
+import com.edugauge.dto.*;
 import com.edugauge.service.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +32,20 @@ public class UserController {
             @RequestBody MyPageUpdateRequest request
     ) {
         return userService.updateMyPage(userId, request);
+    }
+    @PatchMapping("/me/account")
+    public MyPageResponse updateAccount(
+            @AuthenticationPrincipal Long userId,
+            @RequestBody AccountUpdateRequest request
+    ) {
+        return userService.updateAccount(userId, request);
+    }
+
+    @DeleteMapping("/me")
+    public void deleteMe(
+            @AuthenticationPrincipal Long userId
+    ) {
+        userService.deleteMe(userId);
     }
     @GetMapping("/search")
     public List<UserSearchResponse> searchUsers(

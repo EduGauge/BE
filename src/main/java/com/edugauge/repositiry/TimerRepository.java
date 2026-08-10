@@ -10,4 +10,5 @@ import java.util.Optional;
 
 public interface TimerRepository extends JpaRepository<Timer, Long> {
     Optional<Timer> findByUser_Id(Long userId);
+    void deleteByUser_Id(Long userId);
 }

@@ -38,7 +38,7 @@ public class Todo {
     @Enumerated(EnumType.STRING)
     private RepeatType repeatType;
 
-    @Column(name = "end_date", nullable = false)
+    @Column(name = "end_date")
     private LocalDate endDate;
 
     @Column(name = "completed", nullable = false)

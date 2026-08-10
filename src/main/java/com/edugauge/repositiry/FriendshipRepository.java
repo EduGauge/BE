@@ -38,4 +38,5 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
             Long receiverId,
             FriendshipStatus receiverStatus
     );
+    void deleteByRequester_IdOrReceiver_Id(Long requesterId, Long receiverId);
 }

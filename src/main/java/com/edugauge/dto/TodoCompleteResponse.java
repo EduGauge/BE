@@ -9,7 +9,10 @@ public class TodoCompleteResponse {
     private Long todoId;
     private boolean completed;
     private int earnedExperience;
+    private int bonusExperience;
+    private int gauge;
     private int level;
     private int experience;
     private boolean levelUp;
+
 }

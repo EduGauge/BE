@@ -1,8 +1,10 @@
 package com.edugauge.service;
 
+import com.edugauge.domain.DailyProgress;
 import com.edugauge.domain.ProofImage;
 import com.edugauge.domain.user.User;
 import com.edugauge.dto.ProofImageResponse;
+import com.edugauge.repositiry.DailyProgressRepository;
 import com.edugauge.repositiry.ProofImageRepository;
 import com.edugauge.repositiry.UserRepository;
 import jakarta.transaction.Transactional;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class ProofImageService {
     private final ProofImageRepository proofImageRepository;
     private final UserRepository userRepository;
+    private final DailyProgressRepository dailyProgressRepository;
 
     public ProofImageResponse createProofImage(
             Long userId,
@@ -36,6 +39,15 @@ public class ProofImageService {
                 );
 
         LocalDate proofDate = getProofDate();
+        DailyProgress progress = dailyProgressRepository
+                .findByUser_IdAndProgressDate(userId, proofDate)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("오늘의 진행도가 없습니다")
+                );
+
+        if (progress.calculateGauge() < 100) {
+            throw new IllegalArgumentException("게이지 100% 달성 후 인증샷을 등록할 수 있습니다");
+        }
 
         Optional<ProofImage> existing =
                 proofImageRepository.findByUser_IdAndProofDate(

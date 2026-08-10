@@ -15,6 +15,7 @@ public class MyPageResponse {
     private String profileImageUrl;
     private long totalStudyTime;
     private ThemeMode themeMode;
+    private ThemeMode effectiveThemeMode;
     private boolean wakeUpNotificationEnabled;
     private boolean friendRequestNotificationEnabled;
     private int level;

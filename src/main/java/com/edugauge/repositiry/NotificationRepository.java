@@ -17,4 +17,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             LocalDateTime start,
             LocalDateTime end
     );
+    void deleteByReceiver_IdOrSender_Id(Long receiverId, Long senderId);
 }

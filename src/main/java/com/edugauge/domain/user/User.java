@@ -20,7 +20,7 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "login_id", nullable = false, unique = true, length = 20)
+    @Column(name = "login_id", nullable = false, unique = true, length = 100)
     private String loginId;
 
     @Column(name = "password", nullable = false, length = 100)
@@ -59,6 +59,13 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "social_provider", nullable = false, length = 20)
+    private SocialProvider socialProvider;
+
+    @Column(name = "social_id", length = 100)
+    private String socialId;
+
 
     public User(String loginId, String password, String nickname) {
         this.loginId = loginId;
@@ -71,6 +78,8 @@ public class User {
         this.friendRequestNotificationEnabled = true;
         this.level = 1;
         this.experience = 0;
+        this.socialProvider = SocialProvider.EMAIL;
+        this.socialId = null;
     }
 
     public void updateMyPage(
@@ -116,5 +125,35 @@ public class User {
 
         return levelUp;
     }
+    public User(
+            String loginId,
+            String password,
+            String nickname,
+            String profileImageUrl,
+            SocialProvider socialProvider,
+            String socialId
+    ) {
+        this.loginId = loginId;
+        this.password = password;
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+        this.socialProvider = socialProvider;
+        this.socialId = socialId;
+        this.totalStudyTime = 0L;
+        this.themeMode = ThemeMode.LIGHT;
+        this.wakeUpNotificationEnabled = true;
+        this.friendRequestNotificationEnabled = true;
+        this.level = 1;
+        this.experience = 0;
+    }
+
+    public void updateLoginId(String loginId) {
+        this.loginId = loginId;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
 
 }

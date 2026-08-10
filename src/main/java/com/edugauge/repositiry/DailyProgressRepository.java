@@ -17,4 +17,5 @@ public interface DailyProgressRepository extends JpaRepository<DailyProgress, Lo
             LocalDate startDate,
             LocalDate endDate
     );
+    void deleteByUser_Id(Long userId);
 }

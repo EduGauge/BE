@@ -29,6 +29,7 @@ public class TodoService {
     private final CategoryRepository categoryRepository;
     private final DailyProgressRepository dailyProgressRepository;
     private static final int TODO_COMPLETE_EXPERIENCE = 10;
+    private static final int DAILY_COMPLETION_BONUS_EXPERIENCE = 50;
 
     public void createTodo(Long userId, TodoCreateRequest request){
         User user = userRepository.findById(userId)
@@ -156,7 +157,10 @@ public class TodoService {
 
         todo.complete();
 
-        boolean levelUp = todo.getUser().addExperience(TODO_COMPLETE_EXPERIENCE);
+        int earnedExperience = TODO_COMPLETE_EXPERIENCE;
+        int bonusExperience = 0;
+
+        boolean levelUp = todo.getUser().addExperience(earnedExperience);
 
         LocalDate today = LocalDate.now();
 
@@ -166,32 +170,45 @@ public class TodoService {
                         today
                 );
 
+        DailyProgress dailyProgress;
+
         if (progress.isPresent()) {
-            progress.get().completeTodo();
+            dailyProgress = progress.get();
+            dailyProgress.completeTodo();
 
         } else {
             long todoCount = todoRepository.countByUser_Id(userId);
 
-            DailyProgress newProgress = new DailyProgress(
+            dailyProgress = new DailyProgress(
                     todo.getUser(),
                     today,
                     (int) todoCount
             );
 
-            newProgress.completeTodo();
+            dailyProgress.completeTodo();
 
-            dailyProgressRepository.save(newProgress);
+            dailyProgressRepository.save(dailyProgress);
         }
+
+        if (dailyProgress.receiveCompletionBonusIfPossible()) {
+            bonusExperience = DAILY_COMPLETION_BONUS_EXPERIENCE;
+            levelUp = todo.getUser().addExperience(bonusExperience) || levelUp;
+        }
+
+        int gauge = dailyProgress.calculateGauge();
 
         User user = todo.getUser();
 
         return new TodoCompleteResponse(
                 todo.getId(),
                 todo.isCompleted(),
-                TODO_COMPLETE_EXPERIENCE,
+                earnedExperience,
+                bonusExperience,
+                gauge,
                 user.getLevel(),
                 user.getExperience(),
                 levelUp
+
         );
     }
 

@@ -33,6 +33,9 @@ public class DailyProgress {
     @Column(name = "base_todo_count", nullable = false)
     private int baseTodoCount;
 
+    @Column(name = "completion_bonus_received", nullable = false)
+    private boolean completionBonusReceived;
+
     @Column(name = "completed_todo_count", nullable = false)
     private int completedTodoCount;
     public DailyProgress(
@@ -44,6 +47,7 @@ public class DailyProgress {
         this.progressDate = progressDate;
         this.baseTodoCount = baseTodoCount;
         this.completedTodoCount = 0;
+        this.completionBonusReceived = false;
     }
     public void completeTodo() {
         this.completedTodoCount++;
@@ -95,6 +99,22 @@ public class DailyProgress {
         }
 
         return CharacterFace.VERY_HAPPY;
+    }
+    public boolean isCompletedToday() {
+        return calculateGauge() >= 100;
+    }
+
+    public boolean receiveCompletionBonusIfPossible() {
+        if (calculateGauge() < 100) {
+            return false;
+        }
+
+        if (completionBonusReceived) {
+            return false;
+        }
+
+        this.completionBonusReceived = true;
+        return true;
     }
 
 }
