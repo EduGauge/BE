@@ -22,7 +22,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
 
-    private static final String REDIRECT_URL = "edugauge://oauth/callback";
+    private static final String REDIRECT_URL = "https://fe-liard-ten.vercel.app/";
 
     @Override
     public void onAuthenticationSuccess(
