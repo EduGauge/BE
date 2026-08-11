@@ -50,8 +50,7 @@ public class AuthService {
         );
 
     }
-    public LoginResponse reissue(TokenReissueRequest request) {
-        String refreshToken = request.getRefreshToken();
+    public LoginResponse reissue(String refreshToken) {
 
         if (!jwtProvider.validateToken(refreshToken)) {
             throw new IllegalArgumentException("Refresh Token이 유효하지 않습니다");

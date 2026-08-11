@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+import jakarta.servlet.http.Cookie;
 import java.io.IOException;
 import java.util.Collections;
 
@@ -29,15 +29,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         System.out.println("==========핉처 실행=====");
 
-        String authorization = request.getHeader("Authorization");
-        System.out.println("Authorization = " + authorization);
+        String token = resolveToken(request);
 
-
-        if (authorization ==null || !authorization.startsWith("Bearer")){
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
-        String token = authorization.substring(7);
         if(!jwtProvider.validateToken(token)){
             System.out.println(" 토큰 검증 실패");
             filterChain.doFilter(request, response);
@@ -57,5 +54,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().getAuthentication()
         );
         filterChain.doFilter(request, response);
+    }
+    private String resolveToken(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            return authorization.substring(7);
+        }
+
+        if (request.getCookies() == null) {
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("accessToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
     }
 }
