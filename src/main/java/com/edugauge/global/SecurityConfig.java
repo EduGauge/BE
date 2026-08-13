@@ -66,6 +66,8 @@ public class SecurityConfig {
 
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("http://localhost:8081");
+        configuration.addAllowedOrigin("http://localhost:19006");
         configuration.addAllowedOrigin("https://fe-liard-ten.vercel.app");
 
         configuration.addAllowedMethod("*");
