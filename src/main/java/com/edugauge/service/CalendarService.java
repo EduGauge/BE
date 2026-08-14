@@ -4,6 +4,7 @@ import com.edugauge.domain.CharacterFace;
 import com.edugauge.domain.DailyProgress;
 import com.edugauge.domain.ProofImage;
 import com.edugauge.domain.StudyRecord;
+import com.edugauge.domain.Todo;
 import com.edugauge.domain.user.DailyTodoRecord;
 import com.edugauge.dto.CalendarDayResponse;
 import com.edugauge.dto.CalendarDetailResponse;
@@ -12,6 +13,7 @@ import com.edugauge.dto.ProofImageResponse;
 import com.edugauge.repositiry.DailyProgressRepository;
 import com.edugauge.repositiry.DailyTodoRecordRepository;
 import com.edugauge.repositiry.StudyRecordRepository;
+import com.edugauge.repositiry.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.edugauge.repositiry.ProofImageRepository;
@@ -28,6 +30,8 @@ public class CalendarService {
     private final DailyProgressRepository dailyProgressRepository;
     private final DailyTodoRecordRepository dailyTodoRecordRepository;
     private final DailyTodoRecordService dailyTodoRecordService;
+    private final TodoRepository todoRepository;
+    private final StudyDateService studyDateService;
 
     public CalendarDetailResponse getCalendarDetail(Long userId, LocalDate date){
         dailyTodoRecordService.cleanupInvalidPreviousRecord(userId);
@@ -62,19 +66,7 @@ public class CalendarService {
                 .map(DailyProgress::calculateCharacterFace)
                 .orElse(CharacterFace.VERY_SAD);
         String message = createMessage(characterFace);
-        List<DailyTodoRecord> todoRecords =
-                dailyTodoRecordRepository.findByUser_IdAndRecordDate(
-                        userId,
-                        date
-                );
-        List<CalendarTodoResponse> todos = todoRecords.stream()
-                .map(record -> new CalendarTodoResponse(
-                        record.getTodoId(),
-                        record.getTitle(),
-                        record.getCategoryName(),
-                        record.isCompleted()
-                ))
-                .toList();
+        List<CalendarTodoResponse> todos = getCalendarTodos(userId, date);
         int totalTodoCount = todos.size();
 
         int completedTodoCount = (int) todos.stream()
@@ -93,6 +85,40 @@ public class CalendarService {
         );
 
     }
+
+    private List<CalendarTodoResponse> getCalendarTodos(
+            Long userId,
+            LocalDate date
+    ) {
+        if (date.equals(studyDateService.getCurrentStudyDate())) {
+            List<Todo> currentTodos = todoRepository.findByUser_Id(userId);
+
+            return currentTodos.stream()
+                    .map(todo -> new CalendarTodoResponse(
+                            todo.getId(),
+                            todo.getTitle(),
+                            todo.getCategory().getName(),
+                            todo.isCompleted()
+                    ))
+                    .toList();
+        }
+
+        List<DailyTodoRecord> todoRecords =
+                dailyTodoRecordRepository.findByUser_IdAndRecordDate(
+                        userId,
+                        date
+                );
+
+        return todoRecords.stream()
+                .map(record -> new CalendarTodoResponse(
+                        record.getTodoId(),
+                        record.getTitle(),
+                        record.getCategoryName(),
+                        record.isCompleted()
+                ))
+                .toList();
+    }
+
     public List<CalendarDayResponse>getCalendarMonth(
             Long userId,
             int year,

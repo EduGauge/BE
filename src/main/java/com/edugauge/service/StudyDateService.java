@@ -6,23 +6,27 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 
 @Service
 public class StudyDateService {
     private final LocalTime resetTime;
+    private final ZoneId zoneId;
 
     public StudyDateService(
-            @Value("${edugauge.daily-reset-time:06:00}") String resetTime
+            @Value("${edugauge.daily-reset-time:06:00}") String resetTime,
+            @Value("${edugauge.time-zone:Asia/Seoul}") String timeZone
     ) {
         this.resetTime = LocalTime.parse(resetTime);
+        this.zoneId = ZoneId.of(timeZone);
     }
 
     public LocalDate getCurrentStudyDate() {
-        return getStudyDate(LocalDateTime.now());
+        return getStudyDate(now());
     }
 
     public boolean isBeforeResetTime() {
-        return LocalTime.now().isBefore(resetTime);
+        return now().toLocalTime().isBefore(resetTime);
     }
 
     public LocalDate getStudyDate(LocalDateTime dateTime) {
@@ -41,6 +45,10 @@ public class StudyDateService {
 
     public LocalDateTime getCurrentResetAt() {
         return getCurrentStudyDate().atTime(resetTime);
+    }
+
+    public LocalDateTime now() {
+        return LocalDateTime.now(zoneId);
     }
 
     public LocalDateTime getNextResetAt(LocalDateTime now) {

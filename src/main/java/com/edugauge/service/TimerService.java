@@ -33,7 +33,7 @@ public class TimerService {
 
     public void startTimer(Long userId) {
         Optional<Timer> timer = timerRepository.findByUser_Id(userId);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = studyDateService.now();
         if (timer.isEmpty()) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
@@ -78,7 +78,7 @@ public class TimerService {
                         new IllegalArgumentException("타이머가 존재하지 않습니다")
                 );
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = studyDateService.now();
 
         if (needsReset(timer, now)) {
             handleReset(timer, userId, now);
@@ -109,7 +109,7 @@ public class TimerService {
             throw new IllegalArgumentException("이미 정지된 타이머입니다");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = studyDateService.now();
 
         if (needsReset(timer, now)) {
             handleReset(timer, userId, now);
@@ -151,7 +151,7 @@ public class TimerService {
                         new IllegalArgumentException("타이머가 존재하지 않습니다")
                 );
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = studyDateService.now();
 
         if (needsReset(timer, now)) {
             handleReset(timer, userId, now);
