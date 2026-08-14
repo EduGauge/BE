@@ -9,6 +9,7 @@ import com.edugauge.repositiry.ProofImageRepository;
 import com.edugauge.repositiry.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,8 +17,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +29,10 @@ public class ProofImageService {
     private final ProofImageRepository proofImageRepository;
     private final UserRepository userRepository;
     private final DailyProgressRepository dailyProgressRepository;
+    private final StudyDateService studyDateService;
+
+    @Value("${edugauge.upload-dir:uploads}")
+    private String uploadRootDir;
 
     public ProofImageResponse createProofImage(
             Long userId,
@@ -77,13 +82,7 @@ public class ProofImageService {
     }
 
     private LocalDate getProofDate() {
-        LocalDate today = LocalDate.now();
-
-        if (LocalTime.now().isBefore(LocalTime.of(6, 0))) {
-            return today.minusDays(1);
-        }
-
-        return today;
+        return studyDateService.getCurrentStudyDate();
     }
 
     private String saveImage(MultipartFile image) {
@@ -102,11 +101,17 @@ public class ProofImageService {
             String extension = getExtension(originalFilename);
             String storedFilename = UUID.randomUUID() + extension;
 
-            Path uploadDir = Paths.get("uploads", "proof-images");
+            Path uploadDir = Paths.get(uploadRootDir, "proof-images")
+                    .toAbsolutePath()
+                    .normalize();
             Files.createDirectories(uploadDir);
 
             Path filePath = uploadDir.resolve(storedFilename);
-            image.transferTo(filePath.toFile());
+            Files.copy(
+                    image.getInputStream(),
+                    filePath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
 
             return "/uploads/proof-images/" + storedFilename;
 

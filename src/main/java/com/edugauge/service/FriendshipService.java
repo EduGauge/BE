@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -27,6 +26,7 @@ public class FriendshipService {
     private final UserRepository userRepository;
     private final DailyProgressRepository dailyProgressRepository;
     private final NotificationService notificationService;
+    private final StudyDateService studyDateService;
 
     public void sendFriendRequest(
             Long userId,
@@ -207,12 +207,6 @@ public class FriendshipService {
     }
 
     private LocalDate getStudyDate() {
-        LocalDate today = LocalDate.now();
-
-        if (LocalTime.now().isBefore(LocalTime.of(6, 0))) {
-            return today.minusDays(1);
-        }
-
-        return today;
+        return studyDateService.getCurrentStudyDate();
     }
 }

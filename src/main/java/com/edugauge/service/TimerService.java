@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Optional;
 
 @Transactional
@@ -25,19 +24,11 @@ public class TimerService {
     private final TimerRepository timerRepository;
     private final UserRepository userRepository;
     private final StudyRecordRepository studyRecordRepository;
+    private final StudyDateService studyDateService;
 
 
     private LocalDateTime calculateResetAt(LocalDateTime now) {
-        LocalDateTime todaySix = now
-                .withHour(6)
-                .withMinute(0)
-                .withSecond(0)
-                .withNano(0);
-        if (now.isBefore(todaySix)) {
-            return todaySix;
-        }
-        return todaySix.plusDays(1);
-
+        return studyDateService.getNextResetAt(now);
     }
 
     public void startTimer(Long userId) {
@@ -143,13 +134,7 @@ public class TimerService {
             timer.pausedStop();
         }
 
-        LocalDate studyDate;
-
-        if (now.toLocalTime().isBefore(LocalTime.of(6, 0))) {
-            studyDate = now.toLocalDate().minusDays(1);
-        } else {
-            studyDate = now.toLocalDate();
-        }
+        LocalDate studyDate = studyDateService.getStudyDate(now);
 
         saveStudyRecord(
                 timer,
@@ -238,9 +223,9 @@ public class TimerService {
 
             long totalBeforeReset =
                     timer.getAccumulatedSeconds() + secondsBeforeReset;
-            LocalDate studyDate = resetAt
-                    .toLocalDate()
-                    .minusDays(1);
+            LocalDate studyDate = studyDateService.getStudyDate(
+                    resetAt.minusNanos(1)
+            );
 
             saveStudyRecord(
                     timer,
@@ -270,9 +255,9 @@ public class TimerService {
 
         if (timer.getTimerStatus() == TimerStatus.PAUSED) {
 
-            LocalDate studyDate = resetAt
-                    .toLocalDate()
-                    .minusDays(1);
+            LocalDate studyDate = studyDateService.getStudyDate(
+                    resetAt.minusNanos(1)
+            );
 
             saveStudyRecord(
                     timer,

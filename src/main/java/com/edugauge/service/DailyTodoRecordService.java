@@ -20,6 +20,29 @@ public class DailyTodoRecordService {
     private final TodoRepository todoRepository;
     private final DailyTodoRecordRepository dailyTodoRecordRepository;
     private final DailyProgressRepository dailyProgressRepository;
+    private final StudyDateService studyDateService;
+
+    public void rolloverIfNeeded(Long userId) {
+        if (studyDateService.isBeforeResetTime()) {
+            return;
+        }
+
+        LocalDate recordDate = studyDateService.getCurrentStudyDate()
+                .minusDays(1);
+
+        if (dailyTodoRecordRepository.existsByUser_IdAndRecordDate(
+                userId,
+                recordDate
+        )) {
+            return;
+        }
+
+        saveDailyTodoRecords(
+                userId,
+                recordDate
+        );
+        resetDailyTodos(userId);
+    }
 
     public void saveDailyTodoRecords(
             Long userId,

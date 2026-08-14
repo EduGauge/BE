@@ -1,5 +1,6 @@
 package com.edugauge.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -8,16 +9,26 @@ import java.time.LocalTime;
 
 @Service
 public class StudyDateService {
-    private static final LocalTime RESET_TIME = LocalTime.of(6, 0);
+    private final LocalTime resetTime;
+
+    public StudyDateService(
+            @Value("${edugauge.daily-reset-time:06:00}") String resetTime
+    ) {
+        this.resetTime = LocalTime.parse(resetTime);
+    }
 
     public LocalDate getCurrentStudyDate() {
         return getStudyDate(LocalDateTime.now());
     }
 
+    public boolean isBeforeResetTime() {
+        return LocalTime.now().isBefore(resetTime);
+    }
+
     public LocalDate getStudyDate(LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
 
-        if (dateTime.toLocalTime().isBefore(RESET_TIME)) {
+        if (dateTime.toLocalTime().isBefore(resetTime)) {
             return date.minusDays(1);
         }
 
@@ -25,6 +36,16 @@ public class StudyDateService {
     }
 
     public LocalDate getRecordDateForDailyReset() {
-        return LocalDate.now().minusDays(1);
+        return getCurrentStudyDate().minusDays(1);
+    }
+
+    public LocalDateTime getNextResetAt(LocalDateTime now) {
+        LocalDateTime todayReset = now.toLocalDate().atTime(resetTime);
+
+        if (now.isBefore(todayReset)) {
+            return todayReset;
+        }
+
+        return todayReset.plusDays(1);
     }
 }

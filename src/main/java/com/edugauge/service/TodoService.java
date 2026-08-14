@@ -29,10 +29,13 @@ public class TodoService {
     private final CategoryRepository categoryRepository;
     private final DailyProgressRepository dailyProgressRepository;
     private final StudyDateService studyDateService;
+    private final DailyTodoRecordService dailyTodoRecordService;
     private static final int TODO_COMPLETE_EXPERIENCE = 10;
     private static final int DAILY_COMPLETION_BONUS_EXPERIENCE = 50;
 
     public void createTodo(Long userId, TodoCreateRequest request){
+        dailyTodoRecordService.rolloverIfNeeded(userId);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -76,6 +79,8 @@ public class TodoService {
 
     }
     public List<TodoResponse> getTodos(Long userId){
+        dailyTodoRecordService.rolloverIfNeeded(userId);
+
         List<Todo> todos = todoRepository.findByUser_Id(userId);
 
         return todos.stream()
@@ -94,6 +99,8 @@ public class TodoService {
                 .toList();
     }
     public void updateTodo(Long userId, Long todoId, TodoUpdateRequest request){
+        dailyTodoRecordService.rolloverIfNeeded(userId);
+
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new IllegalArgumentException("Todo를 찾을 수 없습니다"));
         if(!todo.getUser().getId().equals(userId)){
@@ -113,6 +120,8 @@ public class TodoService {
     }
 
     public void deleteTodo(Long userId, Long todoId){
+        dailyTodoRecordService.rolloverIfNeeded(userId);
+
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(()-> new IllegalArgumentException("Todo를 찾을 수 없습니다"));
         if(!todo.getUser().getId().equals(userId)){
@@ -143,6 +152,8 @@ public class TodoService {
 
 
     public TodoCompleteResponse completeTodo(Long userId, Long todoId) {
+        dailyTodoRecordService.rolloverIfNeeded(userId);
+
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Todo를 찾을 수 없습니다")

@@ -16,7 +16,7 @@ public class DailyTodoRecordScheduler {
     private final DailyTodoRecordService dailyTodoRecordService;
     private final StudyDateService studyDateService;
 
-    @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "${edugauge.daily-reset-cron:0 0 6 * * *}", zone = "Asia/Seoul")
     public void saveDailyTodoRecordsAtSix() {
         LocalDate recordDate = studyDateService.getRecordDateForDailyReset();
 
