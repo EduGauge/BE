@@ -27,8 +27,11 @@ public class CalendarService {
     private final ProofImageRepository proofImageRepository;
     private final DailyProgressRepository dailyProgressRepository;
     private final DailyTodoRecordRepository dailyTodoRecordRepository;
+    private final DailyTodoRecordService dailyTodoRecordService;
 
     public CalendarDetailResponse getCalendarDetail(Long userId, LocalDate date){
+        dailyTodoRecordService.cleanupInvalidPreviousRecord(userId);
+
         Optional<StudyRecord> studyRecord =
                 studyRecordRepository.findByUser_IdAndStudyDate(userId,date);
 
@@ -95,6 +98,8 @@ public class CalendarService {
             int year,
             int month
     ) {
+        dailyTodoRecordService.cleanupInvalidPreviousRecord(userId);
+
         LocalDate startDate = LocalDate.of(
                 year,
                 month,

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,6 +30,9 @@ public class DailyTodoRecordService {
 
         LocalDate recordDate = studyDateService.getCurrentStudyDate()
                 .minusDays(1);
+        LocalDateTime currentResetAt = studyDateService.getCurrentResetAt();
+
+        cleanupInvalidRolloverRecord(userId, recordDate, currentResetAt);
 
         if (dailyTodoRecordRepository.existsByUser_IdAndRecordDate(
                 userId,
@@ -37,11 +41,69 @@ public class DailyTodoRecordService {
             return;
         }
 
+        List<Todo> todos = todoRepository.findByUser_Id(userId);
+        List<Todo> rolloverTodos = todos.stream()
+                .filter(todo -> todo.getCreatedAt() == null
+                        || todo.getCreatedAt().isBefore(currentResetAt))
+                .toList();
+
+        if (rolloverTodos.isEmpty()) {
+            return;
+        }
+
         saveDailyTodoRecords(
+                userId,
+                recordDate,
+                rolloverTodos
+        );
+        resetDailyTodos(rolloverTodos);
+    }
+
+    public void cleanupInvalidPreviousRecord(Long userId) {
+        if (studyDateService.isBeforeResetTime()) {
+            return;
+        }
+
+        LocalDate recordDate = studyDateService.getCurrentStudyDate()
+                .minusDays(1);
+        LocalDateTime currentResetAt = studyDateService.getCurrentResetAt();
+
+        cleanupInvalidRolloverRecord(userId, recordDate, currentResetAt);
+    }
+
+    private void cleanupInvalidRolloverRecord(
+            Long userId,
+            LocalDate recordDate,
+            LocalDateTime currentResetAt
+    ) {
+        List<DailyTodoRecord> records =
+                dailyTodoRecordRepository.findByUser_IdAndRecordDate(
+                        userId,
+                        recordDate
+                );
+
+        if (records.isEmpty()) {
+            return;
+        }
+
+        boolean allRecordsCreatedAfterReset = records.stream()
+                .allMatch(record -> todoRepository.findById(record.getTodoId())
+                        .map(todo -> todo.getCreatedAt() != null
+                                && !todo.getCreatedAt().isBefore(currentResetAt))
+                        .orElse(false));
+
+        if (!allRecordsCreatedAfterReset) {
+            return;
+        }
+
+        dailyTodoRecordRepository.deleteByUser_IdAndRecordDate(
                 userId,
                 recordDate
         );
-        resetDailyTodos(userId);
+        dailyProgressRepository.deleteByUser_IdAndProgressDate(
+                userId,
+                recordDate
+        );
     }
 
     public void saveDailyTodoRecords(
@@ -56,6 +118,21 @@ public class DailyTodoRecordService {
         }
 
         List<Todo> todos = todoRepository.findByUser_Id(userId);
+        saveDailyTodoRecords(userId, recordDate, todos);
+    }
+
+    private void saveDailyTodoRecords(
+            Long userId,
+            LocalDate recordDate,
+            List<Todo> todos
+    ) {
+        if (dailyTodoRecordRepository.existsByUser_IdAndRecordDate(
+                userId,
+                recordDate
+        )) {
+            return;
+        }
+
         int completedTodoCount = 0;
 
         for (Todo todo : todos) {
@@ -83,7 +160,10 @@ public class DailyTodoRecordService {
 
     public void resetDailyTodos(Long userId) {
         List<Todo> todos = todoRepository.findByUser_Id(userId);
+        resetDailyTodos(todos);
+    }
 
+    private void resetDailyTodos(List<Todo> todos) {
         for (Todo todo : todos) {
             todo.resetCompletion();
         }

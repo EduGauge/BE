@@ -17,5 +17,9 @@ public interface DailyTodoRecordRepository
             Long userId,
             LocalDate recordDate
     );
+    void deleteByUser_IdAndRecordDate(
+            Long userId,
+            LocalDate recordDate
+    );
     void deleteByUser_Id(Long userId);
 }

@@ -39,6 +39,10 @@ public class StudyDateService {
         return getCurrentStudyDate().minusDays(1);
     }
 
+    public LocalDateTime getCurrentResetAt() {
+        return getCurrentStudyDate().atTime(resetTime);
+    }
+
     public LocalDateTime getNextResetAt(LocalDateTime now) {
         LocalDateTime todayReset = now.toLocalDate().atTime(resetTime);
 
