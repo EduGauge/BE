@@ -14,10 +14,11 @@ import java.util.List;
 public class DailyTodoRecordScheduler {
     private final UserRepository userRepository;
     private final DailyTodoRecordService dailyTodoRecordService;
+    private final StudyDateService studyDateService;
 
     @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
     public void saveDailyTodoRecordsAtSix() {
-        LocalDate recordDate = LocalDate.now().minusDays(1);
+        LocalDate recordDate = studyDateService.getRecordDateForDailyReset();
 
         List<User> users = userRepository.findAll();
 
@@ -26,6 +27,7 @@ public class DailyTodoRecordScheduler {
                     user.getId(),
                     recordDate
             );
+            dailyTodoRecordService.resetDailyTodos(user.getId());
         }
     }
 }

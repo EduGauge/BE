@@ -28,6 +28,7 @@ public class TodoService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final DailyProgressRepository dailyProgressRepository;
+    private final StudyDateService studyDateService;
     private static final int TODO_COMPLETE_EXPERIENCE = 10;
     private static final int DAILY_COMPLETION_BONUS_EXPERIENCE = 50;
 
@@ -48,7 +49,7 @@ public class TodoService {
         );
         todoRepository.save(todo);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = studyDateService.getCurrentStudyDate();
 
         Optional<DailyProgress> progress =
                 dailyProgressRepository.findByUser_IdAndProgressDate(
@@ -121,7 +122,7 @@ public class TodoService {
         if (todo.isCompleted()) {
             throw new IllegalArgumentException("완료된 Todo는 삭제할 수 없습니다");
         }
-        LocalDate today = LocalDate.now();
+        LocalDate today = studyDateService.getCurrentStudyDate();
 
         Optional<DailyProgress> progress =
                 dailyProgressRepository.findByUser_IdAndProgressDate(
@@ -162,7 +163,7 @@ public class TodoService {
 
         boolean levelUp = todo.getUser().addExperience(earnedExperience);
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = studyDateService.getCurrentStudyDate();
 
         Optional<DailyProgress> progress =
                 dailyProgressRepository.findByUser_IdAndProgressDate(

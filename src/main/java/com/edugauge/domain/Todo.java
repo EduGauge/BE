@@ -80,4 +80,8 @@ public class Todo {
         this.completed = true;
     }
 
+    public void resetCompletion(){
+        this.completed = false;
+    }
+
 }

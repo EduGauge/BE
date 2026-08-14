@@ -1,7 +1,9 @@
 package com.edugauge.service;
 
+import com.edugauge.domain.DailyProgress;
 import com.edugauge.domain.Todo;
 import com.edugauge.domain.user.DailyTodoRecord;
+import com.edugauge.repositiry.DailyProgressRepository;
 import com.edugauge.repositiry.DailyTodoRecordRepository;
 import com.edugauge.repositiry.TodoRepository;
 import jakarta.transaction.Transactional;
@@ -17,6 +19,8 @@ import java.util.List;
 public class DailyTodoRecordService {
     private final TodoRepository todoRepository;
     private final DailyTodoRecordRepository dailyTodoRecordRepository;
+    private final DailyProgressRepository dailyProgressRepository;
+
     public void saveDailyTodoRecords(
             Long userId,
             LocalDate recordDate
@@ -29,8 +33,12 @@ public class DailyTodoRecordService {
         }
 
         List<Todo> todos = todoRepository.findByUser_Id(userId);
+        int completedTodoCount = 0;
 
         for (Todo todo : todos) {
+            if (todo.isCompleted()) {
+                completedTodoCount++;
+            }
 
             DailyTodoRecord record = new DailyTodoRecord(
                     todo.getUser(),
@@ -40,6 +48,49 @@ public class DailyTodoRecordService {
 
             dailyTodoRecordRepository.save(record);
         }
+
+        if (!todos.isEmpty()) {
+            createDailyProgressIfMissing(
+                    todos,
+                    recordDate,
+                    completedTodoCount
+            );
+        }
+    }
+
+    public void resetDailyTodos(Long userId) {
+        List<Todo> todos = todoRepository.findByUser_Id(userId);
+
+        for (Todo todo : todos) {
+            todo.resetCompletion();
+        }
+    }
+
+    private void createDailyProgressIfMissing(
+            List<Todo> todos,
+            LocalDate recordDate,
+            int completedTodoCount
+    ) {
+        Todo firstTodo = todos.get(0);
+
+        if (dailyProgressRepository.findByUser_IdAndProgressDate(
+                firstTodo.getUser().getId(),
+                recordDate
+        ).isPresent()) {
+            return;
+        }
+
+        DailyProgress dailyProgress = new DailyProgress(
+                firstTodo.getUser(),
+                recordDate,
+                todos.size()
+        );
+
+        for (int i = 0; i < completedTodoCount; i++) {
+            dailyProgress.completeTodo();
+        }
+
+        dailyProgressRepository.save(dailyProgress);
     }
 
 }
