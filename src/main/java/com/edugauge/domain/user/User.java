@@ -73,7 +73,7 @@ public class User {
         this.nickname = nickname;
         this.profileImageUrl = null;
         this.totalStudyTime = 0L;
-        this.themeMode = ThemeMode.LIGHT;
+        this.themeMode = ThemeMode.DARK;
         this.wakeUpNotificationEnabled = true;
         this.friendRequestNotificationEnabled = true;
         this.level = 1;
@@ -140,7 +140,7 @@ public class User {
         this.socialProvider = socialProvider;
         this.socialId = socialId;
         this.totalStudyTime = 0L;
-        this.themeMode = ThemeMode.LIGHT;
+        this.themeMode = ThemeMode.DARK;
         this.wakeUpNotificationEnabled = true;
         this.friendRequestNotificationEnabled = true;
         this.level = 1;
