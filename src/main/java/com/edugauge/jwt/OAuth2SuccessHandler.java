@@ -73,6 +73,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        response.sendRedirect(frontendUrl);
+        response.sendRedirect(frontendUrl.replaceAll("/+$", "") + "/list");
     }
 }
