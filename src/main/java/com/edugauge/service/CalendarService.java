@@ -5,6 +5,8 @@ import com.edugauge.domain.DailyProgress;
 import com.edugauge.domain.ProofImage;
 import com.edugauge.domain.StudyRecord;
 import com.edugauge.domain.Todo;
+import com.edugauge.domain.timer.Timer;
+import com.edugauge.domain.timer.TimerStatus;
 import com.edugauge.domain.user.DailyTodoRecord;
 import com.edugauge.dto.CalendarDayResponse;
 import com.edugauge.dto.CalendarDetailResponse;
@@ -13,12 +15,15 @@ import com.edugauge.dto.ProofImageResponse;
 import com.edugauge.repositiry.DailyProgressRepository;
 import com.edugauge.repositiry.DailyTodoRecordRepository;
 import com.edugauge.repositiry.StudyRecordRepository;
+import com.edugauge.repositiry.TimerRepository;
 import com.edugauge.repositiry.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.edugauge.repositiry.ProofImageRepository;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +36,7 @@ public class CalendarService {
     private final DailyTodoRecordRepository dailyTodoRecordRepository;
     private final DailyTodoRecordService dailyTodoRecordService;
     private final TodoRepository todoRepository;
+    private final TimerRepository timerRepository;
     private final StudyDateService studyDateService;
 
     public CalendarDetailResponse getCalendarDetail(Long userId, LocalDate date){
@@ -39,8 +45,7 @@ public class CalendarService {
         Optional<StudyRecord> studyRecord =
                 studyRecordRepository.findByUser_IdAndStudyDate(userId,date);
 
-        long studySeconds = studyRecord.map(StudyRecord::getStudySeconds)
-                .orElse(0L);
+        long studySeconds = getStudySeconds(userId, date, studyRecord);
         Optional<ProofImage> proofImage =
                 proofImageRepository.findByUser_IdAndProofDate(
                         userId,
@@ -84,6 +89,44 @@ public class CalendarService {
                 todos
         );
 
+    }
+
+    private long getStudySeconds(
+            Long userId,
+            LocalDate date,
+            Optional<StudyRecord> studyRecord
+    ) {
+        long savedSeconds = studyRecord.map(StudyRecord::getStudySeconds)
+                .orElse(0L);
+
+        if (!date.equals(studyDateService.getCurrentStudyDate())) {
+            return savedSeconds;
+        }
+
+        return timerRepository.findByUser_Id(userId)
+                .map(timer -> calculateCurrentStudySeconds(savedSeconds, timer))
+                .orElse(savedSeconds);
+    }
+
+    private long calculateCurrentStudySeconds(
+            long savedSeconds,
+            Timer timer
+    ) {
+        if (timer.getTimerStatus() == TimerStatus.STOPPED) {
+            return Math.max(savedSeconds, timer.getAccumulatedSeconds());
+        }
+
+        long activeSeconds = timer.getAccumulatedSeconds();
+
+        if (timer.getTimerStatus() == TimerStatus.RUNNING) {
+            LocalDateTime now = studyDateService.now();
+            activeSeconds += Duration.between(
+                    timer.getStartedAt(),
+                    now
+            ).getSeconds();
+        }
+
+        return savedSeconds + Math.max(activeSeconds, 0L);
     }
 
     private List<CalendarTodoResponse> getCalendarTodos(
