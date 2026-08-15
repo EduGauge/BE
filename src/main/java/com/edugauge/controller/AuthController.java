@@ -57,6 +57,11 @@ public class AuthController {
         response.sendRedirect("/oauth2/authorization/kakao");
     }
 
+    @GetMapping("/naver")
+    public void naverLogin(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/oauth2/authorization/naver");
+    }
+
     private void addAuthCookies(HttpServletResponse response, LoginResponse token) {
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", token.getAccessToken())
                 .httpOnly(true)
